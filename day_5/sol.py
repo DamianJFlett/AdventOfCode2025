@@ -5,9 +5,10 @@ def load_data():
     Load/preprocess data and returns what we need from it
     """
     input = open("input.txt", "r")
-
-
-    return None
+    data = []
+    for line in input:
+        l = line[:-1]
+    return data
 
 def p1():
     """
@@ -24,8 +25,9 @@ def p2():
 
 
 def main():
-    p1()
-    #p2()
+    data = load_data(data)
+    p1(data)
+    #p2(data)
 
 
 if __name__ == "__main__":
