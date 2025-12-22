@@ -4,13 +4,13 @@
 from ast import literal_eval
 import itertools
 from functools import lru_cache
-from z3 import Int, Optimize
+from gurobipy import *
 
 def load_data():
     """
     Load/preprocess data and returns what we need from it
     """
-    input = open("test_input.txt", "r")
+    input = open("input.txt", "r")
     data = []
     for line in input:
         l = line[:-1]
@@ -51,30 +51,32 @@ def p1(data):
     print(f"part 1: {total}")
 
 
-@lru_cache(None)
-def apply_button(button, state):
-    new = list(state)
-    for x in button:
-        new[x] += 1
-    return tuple(new)
 
 def p2(data):
     """
     Part 2
     """
     total = 0
+    env = Env(empty=True)
+    env.setParam("OutputFlag",0)
+    env.start()
     for row in data:
         goal = [int(x) for x in row[-1][1:-1].split(",")]
         buttons =  [literal_eval(x) for x in row[1:-1]] 
         buttons = [(x,) if type(x) == int else x for x in buttons ]
-        mat = np.mat([[1 if index in button else 0 for button in buttons] for index, _ in enumerate(goal)])
-    
-    print(f"part 2: {total}")
+        m = Model("linprog", env = env)
+        presses = {index: m.addVar(vtype=GRB.INTEGER) for index, button in enumerate(buttons)}
+        for index, sig in enumerate(goal):
+            m.addConstr(quicksum(presses[i] * (index in buttons[i]) for i in range(len(buttons))) == sig)  
+        m.setObjective(quicksum(presses[i] for i in presses), GRB.MINIMIZE) 
+        m.optimize()
+        total += m.objVal 
+    print(f"part 2: {total}"    )
 
 
 def main():
     data = load_data()
-    #p1(data)
+    p1(data)
     p2(data)
 
 
